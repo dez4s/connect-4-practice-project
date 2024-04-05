@@ -1,4 +1,4 @@
-const gameboard = (function () {
+const gameboard = function () {
   const columns = 7;
   const rows = 6;
   const board = [];
@@ -29,7 +29,7 @@ const gameboard = (function () {
   }
 
   return { printBoard, getBoard, dropToken }
-})();
+};
 
 function Cell() {
   let value = 0;
@@ -42,7 +42,9 @@ function Cell() {
   return { getValue, setValue };
 }
 
-const gameManagerCreator = function (playerOneName = 'player1', playerTwoName = 'player2'){
+const gameController = function (playerOneName = 'player1', playerTwoName = 'player2'){
+ 
+  const board = gameboard();
 
   const players = [
     {
@@ -65,7 +67,7 @@ const gameManagerCreator = function (playerOneName = 'player1', playerTwoName = 
     activePlayer = players[0];
 
   const printNewRound = function () {
-    gameboard.printBoard();
+    board.printBoard();
     console.log(`${getActivePlayer().name}'s turn!`);
   }
 
@@ -73,7 +75,7 @@ const gameManagerCreator = function (playerOneName = 'player1', playerTwoName = 
     console.log(
       `Dropping ${getActivePlayer().name}'s token into column ${column}...`
     );
-    gameboard.dropToken(getActivePlayer().token, column);
+    board.dropToken(getActivePlayer().token, column);
 
     switchPlayer();
     printNewRound();
@@ -81,17 +83,55 @@ const gameManagerCreator = function (playerOneName = 'player1', playerTwoName = 
 
   printNewRound();
 
-  return { playRound };
+  return { playRound, getActivePlayer, getBoard: board.getBoard };
 };
 
-const gameManager = gameManagerCreator();
+// console version
+// const game = new gameController();
+// console.log(game.playRound(5));
 
-gameManager.playRound(0);
-gameManager.playRound(0);
-gameManager.playRound(0);
-gameManager.playRound(0);
 
-gameManager.playRound(0);
-gameManager.playRound(0);
-gameManager.playRound(0);
+// UI VERSION
+const screenController = (function () { 
+    const game = new gameController();
+    const playerTurnTextElem = document.querySelector('.turn');
+    const boardDiv = document.querySelector('.board');
+
+
+
+    const updateScreen = () => {
+        boardDiv.replaceChildren();
+        const board = game.getBoard();
+        const activePlayer = game.getActivePlayer();
+
+        playerTurnTextElem.textContent = `It's ${activePlayer.name}'s turn!`;
+
+        board.forEach((row) => row.forEach((cell, index) => {
+            const cellButton = document.createElement('button');
+            cellButton.textContent = cell.getValue();
+            cellButton.dataset.column = index;
+            cellButton.classList.add('cell');
+            boardDiv.appendChild(cellButton);
+          })
+        );
+    };
+
+    function clickHandlerBoard(e) {
+      const clickedColumn = e.target.dataset.column;
+      if (!clickedColumn) return;
+
+      game.playRound(clickedColumn);
+    }
+
+    boardDiv.addEventListener('click', (e) => {
+      clickHandlerBoard(e);
+      updateScreen();
+    })
+
+    updateScreen();
+})();
+
+
+
+
 
