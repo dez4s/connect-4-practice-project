@@ -20,3 +20,7 @@ div.board {
   background: lightyellow;
   cursor: pointer;
 }
+
+.winner-cell {
+  background-color: lightsalmon;
+}
