@@ -6,10 +6,17 @@
   <script src="javascript.js" defer></script>
 </head>
 <body>
-  <div class="container">
-    <h1 class="turn"></h1>
-    <div class="board">
+  <main>
+    <div class="container">
+      <h1 class="turn"></h1>
+      <div class="board"></div>
+      <dialog id="newgame-modal">
+        <form method="dialog">
+          <label for="newgame-btn">Are you sure?</label>
+          <button id="newgame-btn">Yes</button>
+          <button>No</button>
+        </form>
+      </dialog>
     </div>
-
-  </div>
+  </main>
 </body>

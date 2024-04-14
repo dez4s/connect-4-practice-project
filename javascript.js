@@ -75,7 +75,7 @@ const gameboard = function () {
     return diagonalsArray;
   }
 
-  return { printBoard, getBoard, dropToken, flipBoard, mirrorBoard, upsideDownBoard, getDiagonals}
+  return { printBoard, resetBoard, getBoard, dropToken, flipBoard, mirrorBoard, upsideDownBoard, getDiagonals}
 };
 
 function Cell() {
@@ -133,7 +133,6 @@ const gameController = function (playerOneName = 'player1', playerTwoName = 'pla
 
     if(checkForWinner()) {
       const winnerObj = checkForWinner();
-      console.log("Player " + winnerObj.winner + ' wins!');
       winner = winnerObj.winner;
 
       winnerObj.winnerCellCombi.forEach(cell => {
@@ -144,6 +143,12 @@ const gameController = function (playerOneName = 'player1', playerTwoName = 'pla
     switchPlayer();
     printNewRound();
   }  
+
+  const resetGame = () => {
+    board.resetBoard();
+    winner = 0;
+    activePlayer = players[0];
+  }
 
   const checkForWinner = () => {
     const mirroredBoard = board.mirrorBoard(board.getBoard());
@@ -165,13 +170,6 @@ const gameController = function (playerOneName = 'player1', playerTwoName = 'pla
     } else {
       return false;
     }
-    
-    // console.log(runWinCondition(board.getBoard()));
-    // console.log(runWinCondition(board.flipBoard()));
-    // console.log(runWinCondition(board.getDiagonals(board.getBoard())));
-    // console.log(runWinCondition(board.getDiagonals(mirroredBoard)));
-    // console.log(runWinCondition(board.getDiagonals(board.upsideDownBoard())));
-    // console.log(runWinCondition(board.getDiagonals(upsideDownMirrored)));
   }
 
   const runWinCondition = function (passedBoard) {
@@ -211,7 +209,7 @@ const gameController = function (playerOneName = 'player1', playerTwoName = 'pla
 
   printNewRound();
 
-  return { playRound, getActivePlayer, getBoard: board.getBoard };
+  return { playRound, getActivePlayer, getBoard: board.getBoard, getWinner, resetGame };
 };
 
 // console version
@@ -227,10 +225,13 @@ const gameController = function (playerOneName = 'player1', playerTwoName = 'pla
 
 
 // UI VERSION
-const screenController = (function () { 
+const screenController = (function () {   
     const game = new gameController();
-    const playerTurnTextElem = document.querySelector('.turn');
-    const boardDiv = document.querySelector('.board');
+    const container = document.querySelector('.container');
+    const playerTurnTextElem = container.querySelector('.turn');
+    const boardDiv = container.querySelector('.board');
+    const modal = container.querySelector('#newgame-modal');
+    const newGameBtn = container.querySelector('#newgame-btn');
 
     const updateScreen = () => {
         boardDiv.replaceChildren();
@@ -250,90 +251,118 @@ const screenController = (function () {
         );
     };
 
+    const winnerScreen = () => {
+      playerTurnTextElem.textContent = `Player ${game.getWinner()}'s wins!`;
+    };
+
+    const addResetModalOpener = () => {
+      const resetModalBtn = document.createElement('button');
+      resetModalBtn.textContent = 'New game';
+      resetModalBtn.id = 'open-reset-modal-btn'
+      container.appendChild(resetModalBtn);
+      resetModalBtn.addEventListener('click', () => {
+        modal.showModal();
+      })
+    }
+
     function clickHandlerBoard(e) {
+      if (!container.querySelector('button#open-reset-modal-btn')) addResetModalOpener();
 
       const clickedColumn = e.target.dataset.column;
       if (!clickedColumn) return;
 
       game.playRound(clickedColumn);
+
+      updateScreen();
+
+      if (game.getWinner()) {
+        boardDiv.removeEventListener('click', clickHandlerBoard);
+        winnerScreen();
+      }
     }
 
-    boardDiv.addEventListener('click', (e) => {
-      clickHandlerBoard(e);
+    const clickHanderNewGameBtn = (e) => {
+      container.removeChild(container.querySelector('button#open-reset-modal-btn'));
+      game.resetGame();
+      boardDiv.addEventListener('click', clickHandlerBoard);
       updateScreen();
-    })
+    }
+
+    newGameBtn.addEventListener('click', clickHanderNewGameBtn);
+    boardDiv.addEventListener('click', clickHandlerBoard);
 
     updateScreen();
 })();
 
 
 
+// problem division
 
-let board = [
-  [2, 2, 2, 2, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0],
-  [1, 1, 1, 1, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0],
-];
+// let board = [
+//   [2, 2, 2, 2, 0, 0, 0],
+//   [0, 0, 0, 0, 0, 0, 0],
+//   [1, 1, 1, 1, 0, 0, 0],
+//   [0, 0, 0, 0, 0, 0, 0],
+//   [0, 0, 0, 0, 0, 0, 0],
+//   [0, 0, 0, 0, 0, 0, 0],
+// ];
 
 
 // flip board in order to verify vertical win condition  
-function flipBoard(board) {
-  const flippedBoard = [];
-  let rows = 6;
-  let columns = 7;
-  for (let i = 0; i < columns; i++) {
-    flippedBoard[i] = [];
-  }
-  for (let i = 0; i < rows; i++) {
-    for (let j = 0; j < columns; j++) {
-      flippedBoard[j].push(board[i][j]);
-    }
-  }
-  return flippedBoard;
-}
+// function flipBoard(board) {
+//   const flippedBoard = [];
+//   let rows = 6;
+//   let columns = 7;
+//   for (let i = 0; i < columns; i++) {
+//     flippedBoard[i] = [];
+//   }
+//   for (let i = 0; i < rows; i++) {
+//     for (let j = 0; j < columns; j++) {
+//       flippedBoard[j].push(board[i][j]);
+//     }
+//   }
+//   return flippedBoard;
+// }
 
 
 
 // diagonal win condition
 
 // reverse the array (in order to verify from the top right corner) before passing to create arrays from diagonals
-function mirrorBoard(board) {
-  return board.map(row => {
-    return [...row].reverse(); // spread operator to create shallow copies of the array for each rows
-  });
-}
+// function mirrorBoard(board) {
+//   return board.map(row => {
+//     return [...row].reverse(); // spread operator to create shallow copies of the array for each rows
+//   });
+// }
 
-const flippedBoard = flipBoard(board);
+// const flippedBoard = flipBoard(board);
 
-const upsideDownBoard = [...board].reverse();
-const boardMirror = mirrorBoard(board);
-const upsideDownMirror = mirrorBoard(upsideDownBoard);
+// const upsideDownBoard = [...board].reverse();
+// const boardMirror = mirrorBoard(board);
+// const upsideDownMirror = mirrorBoard(upsideDownBoard);
 
 
 // create arrays from diagonals starting from top left corner as default in order to pass to win condition verifier 
-function createDiagonalsArr(board) {
-  let rows = 6;
-  let columns = 7;
-  let counter = 0;
-  let diagonalsArray = [];
-  for (i = 0; i < rows; i++) {
-    counter++;
-    let reverseCounter = counter;
-    diagonalsArray[i] = [];
+// function createDiagonalsArr(board) {
+//   let rows = 6;
+//   let columns = 7;
+//   let counter = 0;
+//   let diagonalsArray = [];
+//   for (i = 0; i < rows; i++) {
+//     counter++;
+//     let reverseCounter = counter;
+//     diagonalsArray[i] = [];
 
-    for (j = 0; j < counter; j++) {
-      if (j < columns) {
-        reverseCounter--;
-        // console.log({i}, {j}, {counter}, {reverseCounter}, board[reverseCounter][j]);
-        diagonalsArray[i].push(board[reverseCounter][j]);
-      }
-    }
-  }
-  return diagonalsArray;
-}
+//     for (j = 0; j < counter; j++) {
+//       if (j < columns) {
+//         reverseCounter--;
+//         // console.log({i}, {j}, {counter}, {reverseCounter}, board[reverseCounter][j]);
+//         diagonalsArray[i].push(board[reverseCounter][j]);
+//       }
+//     }
+//   }
+//   return diagonalsArray;
+// }
 
 // const topLeftDiags = createDiagonalsArr(board);
 // const topRightDiags = createDiagonalsArr(boardMirror);
@@ -349,7 +378,7 @@ function createDiagonalsArr(board) {
 
 
 // row win condition
-const arr = [0, 1, 1, 1, 2];
+// const arr = [0, 1, 1, 1, 2];
 // const res = arr.reduce((acc, currValue) => {
 //     if (acc && acc === currValue) {
 //       // increase counter on consecutive repeating tokens
@@ -361,27 +390,27 @@ const arr = [0, 1, 1, 1, 2];
 //     return acc = currValue;
 // });
 
-function runWinCondition(board) {
-  let winner = 0;
-  board.forEach((row) => {
-    let streak = 1;
-    for (let i = 0; i < row.length; i++) {
-      if (winner) break;
-      let temp;
-      if (row[i-1]) temp = row[i - 1];
-      if (row[i] && temp && temp === row[i]) {
-        streak++;
-        if (streak === 4) {
-          winner = row[i];
-        }
-      } else {
-        streak = 1;
-      }
-    }
-  });
-  return winner;
-}
-function checkForWinner(){
+// function runWinCondition(board) {
+//   let winner = 0;
+//   board.forEach((row) => {
+//     let streak = 1;
+//     for (let i = 0; i < row.length; i++) {
+//       if (winner) break;
+//       let temp;
+//       if (row[i-1]) temp = row[i - 1];
+//       if (row[i] && temp && temp === row[i]) {
+//         streak++;
+//         if (streak === 4) {
+//           winner = row[i];
+//         }
+//       } else {
+//         streak = 1;
+//       }
+//     }
+//   });
+//   return winner;
+// }
+// function checkForWinner(){
   // console.log(runWinCondition(board));
 
   // flippedBoard.forEach(row => {
@@ -399,11 +428,9 @@ function checkForWinner(){
   // bottomRightDiags.forEach(row => {
   //   runWinCondition(row);
   // });
-}
+// }
 
-checkForWinner();
-
-
+// checkForWinner();
 
 // [0][0] 
 // [1][0] + [0][1] /

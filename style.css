@@ -1,13 +1,15 @@
 div.board {
   display: grid;
-  width: 500px;
-  height: 500px;
+  width: 700px;
+  height: 550px;
   grid-template-columns: repeat(7, 1fr);
   grid-template-rows: repeat(6, 1fr);
-  background-color: lightgoldenrodyellow;
-  border: 1px solid black;
-  gap: 2px;
-  padding: 2px;
+  background-color: rgba(0, 104, 156, 0.603);
+  padding: 8px 15px;
+  border-top: none;
+  border-radius: 1%;
+  column-gap: 15px;
+  row-gap: 8px;
 }
 
 .cell {
@@ -16,9 +18,12 @@ div.board {
   align-items: center;
   text-align: center;
   font-size: 2rem;
-  border: 1px solid grey;
-  background: lightyellow;
+  /* border: 1px solid grey; */
+  border: none;
+  border-radius: 50%;
+  background: rgb(224, 255, 241);
   cursor: pointer;
+
 }
 
 .winner-cell {
