@@ -1,22 +1,45 @@
 <!DOCTYPE html>
 <head>
   <meta charset="UTF_8" />
-  <title>Document</title>
+  <title>Connect 4</title>
   <link rel="stylesheet" href="style.css" />
   <script src="javascript.js" defer></script>
+  <link rel="shortcut icon" href="./images/connect4logo.png" type="image/
+  x-icon">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Jersey+10&family=Jersey+10+Charted&display=swap" rel="stylesheet">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
 </head>
 <body>
+  <header>
+    <h1>CONNECT 4</h1>
+  </header>
   <main>
     <div class="container">
-      <h1 class="turn"></h1>
+      <button id="start-game">START GAME</button>
+      <div id="turn-container">
+        <span id="player-name"></span><span id="turn"></h1>
+      </div> 
       <div class="board"></div>
       <dialog id="newgame-modal">
         <form method="dialog">
-          <label for="newgame-btn">Are you sure?</label>
-          <button id="newgame-btn">Yes</button>
-          <button>No</button>
+          <label>Are you sure?</label>
+          <button class="btn" id="newgame-btn">YES</button>
+          <button class="btn" id="cancel-btn">NO</button>
         </form>
       </dialog>
     </div>
   </main>
+  <footer>
+    <p>Copyright ©</p>
+    <span id="currentYear">2024</span>
+    <p>Gabriel Panaitescu</p>
+    <a href="https://github.com/dez4s?tab=overview&amp;from=2024-03-01&amp;to=2024-03-18">
+      <img src="./images/github-logo/github-mark/github-mark.svg" alt="" class="icon">
+    </a>
+  </footer>
 </body>

@@ -21,7 +21,7 @@ const gameboard = function () {
 
     if (availableCells.length < 1) {
       console.log('Cannot place token there! Column is full');
-      return;
+      return 'full';
     }
     
     const lowestRow = availableCells.length - 1;
@@ -93,7 +93,7 @@ function Cell() {
   return { getValue, setValue, getWinnerCell, setWinnerCell };
 }
 
-const gameController = function (playerOneName = 'player1', playerTwoName = 'player2'){
+const gameController = function (playerOneName = 'Red', playerTwoName = 'Yellow'){
   const board = gameboard();
   const players = [
     {
@@ -104,10 +104,14 @@ const gameController = function (playerOneName = 'player1', playerTwoName = 'pla
       name: playerTwoName,
       token: 2,
     }
-  ]
+  ];
 
   let winner = 0;
+  let tie;
+
   const getWinner = () => winner;
+  const checkTie = () => tie;
+
 
   let activePlayer = players[0];
   const getActivePlayer = () => activePlayer;
@@ -126,10 +130,14 @@ const gameController = function (playerOneName = 'player1', playerTwoName = 'pla
     console.log(
       `Dropping ${getActivePlayer().name}'s token into column ${column}...`
     );
-    board.dropToken(getActivePlayer().token, column);
+
+    if (board.dropToken(getActivePlayer().token, column) === 'full') return;
 
 
-    console.log(checkForWinner());
+    checkForWinner();
+    if (checkForTie()) {
+      console.log('It\'s a tie!'); //for console version
+    }
 
     if(checkForWinner()) {
       const winnerObj = checkForWinner();
@@ -138,6 +146,7 @@ const gameController = function (playerOneName = 'player1', playerTwoName = 'pla
       winnerObj.winnerCellCombi.forEach(cell => {
         cell.setWinnerCell();
       });
+      return;
     }
 
     switchPlayer();
@@ -148,6 +157,18 @@ const gameController = function (playerOneName = 'player1', playerTwoName = 'pla
     board.resetBoard();
     winner = 0;
     activePlayer = players[0];
+  }
+
+  const checkForTie = () => {
+    const currentBoard = board.getBoard();
+    const availableCellsBoard = currentBoard.map(row => {
+      return row.filter(cell => !cell.getValue());
+    });
+
+    const availableRows = availableCellsBoard.filter(row => row.length > 0);
+
+    if (availableRows.length === 0) tie = 1;
+    return tie;
   }
 
   const checkForWinner = () => {
@@ -183,8 +204,6 @@ const gameController = function (playerOneName = 'player1', playerTwoName = 'pla
         let temp;
         if (row[i - 1]) {
           temp = row[i - 1];
-          // temp = Cell(); // second variant
-          // temp.setValue(row[i - 1].getValue());
         }
         if (row[i].getValue() && temp && temp.getValue() === row[i].getValue()) {
           streak++;
@@ -202,62 +221,79 @@ const gameController = function (playerOneName = 'player1', playerTwoName = 'pla
         }
       }
     });
-    //  const getWinner = () => winner;
-    //  const getWinnerCellCombi = () => winnerCellCombi; // no need as these values are not modified post function call
      return { winner, winnerCellCombi };
   };
 
   printNewRound();
 
-  return { playRound, getActivePlayer, getBoard: board.getBoard, getWinner, resetGame };
+  return { playRound, getActivePlayer, getBoard: board.getBoard, getWinner, resetGame, checkTie };
 };
 
 // console version
 // const game = new gameController();
 // game.playRound(5);
 // game.playRound(2);
-// game.playRound(5);
-// game.playRound(2);
-// game.playRound(5);
-// game.playRound(2);
-// game.playRound(5);
-
 
 
 // UI VERSION
 const screenController = (function () {   
+    let boardDiv;
     const game = new gameController();
     const container = document.querySelector('.container');
-    const playerTurnTextElem = container.querySelector('.turn');
-    const boardDiv = container.querySelector('.board');
+    const playerTurnText = container.querySelector('#turn');
+    const playerTurnName = container.querySelector('#player-name');
     const modal = container.querySelector('#newgame-modal');
     const newGameBtn = container.querySelector('#newgame-btn');
+    const startGameBtn = container.querySelector('#start-game');
+    
 
     const updateScreen = () => {
+        if (!boardDiv) return;
+
         boardDiv.replaceChildren();
         const board = game.getBoard();
         const activePlayer = game.getActivePlayer();
 
-        playerTurnTextElem.textContent = `It's ${activePlayer.name}'s turn!`;
+        playerTurnName.textContent = `${activePlayer.name.toUpperCase()}`;
+        playerTurnText.textContent = `'s turn!`; 
+
+        if (game.getWinner()) playerTurnText.textContent = ` wins!`;
+        if (game.checkTie()) {
+          playerTurnName.textContent = '';
+          playerTurnText.textContent = 'It\'s a tie!';
+        }
+   
+        if (activePlayer.token === 1) {
+          playerTurnName.classList.remove('turn-p2');
+          playerTurnName.classList.add('turn-p1');
+        } else if (activePlayer.token === 2) {
+          playerTurnName.classList.remove('turn-p1');
+          playerTurnName.classList.add('turn-p2');
+        } 
 
         board.forEach((row) => row.forEach((cell, index) => {
             const cellButton = document.createElement('button');
-            cellButton.textContent = cell.getValue();
-            cellButton.dataset.column = index;
+            // cellButton.textContent = cell.getValue();
+
             cellButton.classList.add('cell');
+            if (cell.getValue() === 1) {
+              cellButton.classList.add('cell-p1');
+            } else if (cell.getValue() === 2) {
+
+              cellButton.classList.add('cell-p2');
+            }
+            cellButton.dataset.column = index;
+
             if (cell.getWinnerCell()) cellButton.classList.add('winner-cell');
             boardDiv.appendChild(cellButton);
           })
         );
     };
 
-    const winnerScreen = () => {
-      playerTurnTextElem.textContent = `Player ${game.getWinner()}'s wins!`;
-    };
-
     const addResetModalOpener = () => {
       const resetModalBtn = document.createElement('button');
-      resetModalBtn.textContent = 'New game';
+      resetModalBtn.textContent = 'RESTART';
+      resetModalBtn.classList.add('btn');
       resetModalBtn.id = 'open-reset-modal-btn'
       container.appendChild(resetModalBtn);
       resetModalBtn.addEventListener('click', () => {
@@ -266,18 +302,19 @@ const screenController = (function () {
     }
 
     function clickHandlerBoard(e) {
-      if (!container.querySelector('button#open-reset-modal-btn')) addResetModalOpener();
-
       const clickedColumn = e.target.dataset.column;
+      
       if (!clickedColumn) return;
+
+      if (!container.querySelector('button#open-reset-modal-btn')) addResetModalOpener();
 
       game.playRound(clickedColumn);
 
       updateScreen();
 
-      if (game.getWinner()) {
+      if (game.getWinner() || game.checkTie()) {
         boardDiv.removeEventListener('click', clickHandlerBoard);
-        winnerScreen();
+        container.querySelector('#open-reset-modal-btn').classList.add('pulse');
       }
     }
 
@@ -288,154 +325,31 @@ const screenController = (function () {
       updateScreen();
     }
 
-    newGameBtn.addEventListener('click', clickHanderNewGameBtn);
-    boardDiv.addEventListener('click', clickHandlerBoard);
+    const startGame = (e) => {
+       container.removeChild(e.target);
 
-    updateScreen();
+       boardDiv = container.querySelector('.board');
+       boardDiv.addEventListener('click', clickHandlerBoard);
+       boardDiv.id = 'board-styles';
+
+       updateScreen();
+    };
+
+    startGameBtn.addEventListener('click', startGame);
+    newGameBtn.addEventListener('click', clickHanderNewGameBtn);
+    modal.addEventListener("click", e => {
+      const modalDimensions = modal.getBoundingClientRect();
+      console.log(e.target.tagName);
+      if 
+        (
+        e.clientX < modalDimensions.left ||
+        e.clientX > modalDimensions.right ||
+        e.clientY < modalDimensions.top ||
+        e.clientY > modalDimensions.bottom
+      ) {
+        modal.close()
+      }
+    });
 })();
 
-
-
-// problem division
-
-// let board = [
-//   [2, 2, 2, 2, 0, 0, 0],
-//   [0, 0, 0, 0, 0, 0, 0],
-//   [1, 1, 1, 1, 0, 0, 0],
-//   [0, 0, 0, 0, 0, 0, 0],
-//   [0, 0, 0, 0, 0, 0, 0],
-//   [0, 0, 0, 0, 0, 0, 0],
-// ];
-
-
-// flip board in order to verify vertical win condition  
-// function flipBoard(board) {
-//   const flippedBoard = [];
-//   let rows = 6;
-//   let columns = 7;
-//   for (let i = 0; i < columns; i++) {
-//     flippedBoard[i] = [];
-//   }
-//   for (let i = 0; i < rows; i++) {
-//     for (let j = 0; j < columns; j++) {
-//       flippedBoard[j].push(board[i][j]);
-//     }
-//   }
-//   return flippedBoard;
-// }
-
-
-
-// diagonal win condition
-
-// reverse the array (in order to verify from the top right corner) before passing to create arrays from diagonals
-// function mirrorBoard(board) {
-//   return board.map(row => {
-//     return [...row].reverse(); // spread operator to create shallow copies of the array for each rows
-//   });
-// }
-
-// const flippedBoard = flipBoard(board);
-
-// const upsideDownBoard = [...board].reverse();
-// const boardMirror = mirrorBoard(board);
-// const upsideDownMirror = mirrorBoard(upsideDownBoard);
-
-
-// create arrays from diagonals starting from top left corner as default in order to pass to win condition verifier 
-// function createDiagonalsArr(board) {
-//   let rows = 6;
-//   let columns = 7;
-//   let counter = 0;
-//   let diagonalsArray = [];
-//   for (i = 0; i < rows; i++) {
-//     counter++;
-//     let reverseCounter = counter;
-//     diagonalsArray[i] = [];
-
-//     for (j = 0; j < counter; j++) {
-//       if (j < columns) {
-//         reverseCounter--;
-//         // console.log({i}, {j}, {counter}, {reverseCounter}, board[reverseCounter][j]);
-//         diagonalsArray[i].push(board[reverseCounter][j]);
-//       }
-//     }
-//   }
-//   return diagonalsArray;
-// }
-
-// const topLeftDiags = createDiagonalsArr(board);
-// const topRightDiags = createDiagonalsArr(boardMirror);
-// const bottomLeftDiags = createDiagonalsArr(upsideDownBoard);
-// const bottomRightDiags = createDiagonalsArr(upsideDownMirror);
-
-// console.log({ board });
-// console.log({flippedBoard});
-// console.log({topLeftDiags});
-// console.log({topRightDiags});
-// console.log({bottomLeftDiags});
-// console.log({bottomRightDiags});
-
-
-// row win condition
-// const arr = [0, 1, 1, 1, 2];
-// const res = arr.reduce((acc, currValue) => {
-//     if (acc && acc === currValue) {
-//       // increase counter on consecutive repeating tokens
-//       counter++;
-//     } else {
-//       // reset counter if consecutive streak is broken
-//       counter = 1;
-//     }
-//     return acc = currValue;
-// });
-
-// function runWinCondition(board) {
-//   let winner = 0;
-//   board.forEach((row) => {
-//     let streak = 1;
-//     for (let i = 0; i < row.length; i++) {
-//       if (winner) break;
-//       let temp;
-//       if (row[i-1]) temp = row[i - 1];
-//       if (row[i] && temp && temp === row[i]) {
-//         streak++;
-//         if (streak === 4) {
-//           winner = row[i];
-//         }
-//       } else {
-//         streak = 1;
-//       }
-//     }
-//   });
-//   return winner;
-// }
-// function checkForWinner(){
-  // console.log(runWinCondition(board));
-
-  // flippedBoard.forEach(row => {
-  //   runWinCondition(row);
-  // });
-  // topLeftDiags.forEach(row => {
-  //   runWinCondition(row);
-  // });
-  // topRightDiags.forEach(row => {
-  //   runWinCondition(row);
-  // });
-  // bottomLeftDiags.forEach(row => {
-  //   runWinCondition(row);
-  // });
-  // bottomRightDiags.forEach(row => {
-  //   runWinCondition(row);
-  // });
-// }
-
-// checkForWinner();
-
-// [0][0] 
-// [1][0] + [0][1] /
-// [2][0] + [1][1] + [0][2] 
-// [3][0] + [2][1] + [1][2] + [0][3] 
-// [4][0] + [3][1] + [2][2] + [1][3] + [0][4] 
-// [5][0] + [4][1] + [3][2] + [2][3] + [1][4] + [0][5]
 
