@@ -32,7 +32,6 @@ video {
   margin: 0;
   padding: 0;
   font: inherit;
-  
 }
 
 html {
@@ -75,6 +74,7 @@ div.container {
 }
 
 button#start-game {
+  color: black;
   position: fixed;
   top: 40%;
   font-size: 7rem;
@@ -209,7 +209,7 @@ div#board-styles {
 }
 
 #open-reset-modal-btn {
-
+  margin-bottom: var(--spacing-s);
   font-size: 1.4rem;
   box-shadow: var(--shadow);
 }
@@ -221,15 +221,45 @@ div#board-styles {
 	animation: pulse 2s infinite;
 }
 
-@media only screen and (max-height: 850px) {
+@media only screen and (max-height: 860px) {
   :root {
-      font-size: 0.9rem;   
+      font-size: 11px;   
+  }
+  div#board-styles {
+    width: 525px;
+    height: 375px;
+  }
+}
+
+@media only screen and (max-width: 768px) {
+  :root {
+      font-size: 11px;   
+  }
+  div#board-styles {
+    width: 525px;
+    height: 375px;
+  }
+}
+
+@media only screen and (max-width: 570px) {
+  :root {
+      font-size: 10px;   
+  }
+  div#board-styles {
+    width: 350px;
+    height: 250px;
+  }
+}
+
+@media only screen and (max-width: 380px) {
+  :root {
+      font-size: 9px;   
   }
 
-  div.board {
-    transform: scale(0.95)
+  div#board-styles {
+    width: 300px;
+    height: 200px;
   }
-
 }
 
 @keyframes pulse {
