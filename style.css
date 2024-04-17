@@ -221,7 +221,7 @@ div#board-styles {
 	animation: pulse 2s infinite;
 }
 
-@media only screen and (max-height: 860px) {
+@media (max-height: 860px) {
   :root {
       font-size: 11px;   
   }
@@ -231,7 +231,7 @@ div#board-styles {
   }
 }
 
-@media only screen and (max-width: 768px) {
+@media (max-width: 768px) {
   :root {
       font-size: 11px;   
   }
@@ -241,7 +241,7 @@ div#board-styles {
   }
 }
 
-@media only screen and (max-width: 570px) {
+@media (max-width: 570px) {
   :root {
       font-size: 10px;   
   }
@@ -251,7 +251,7 @@ div#board-styles {
   }
 }
 
-@media only screen and (max-width: 380px) {
+@media (max-width: 380px) {
   :root {
       font-size: 9px;   
   }
