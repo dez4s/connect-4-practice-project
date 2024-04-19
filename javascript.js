@@ -107,7 +107,7 @@ const gameController = function (playerOneName = 'Red', playerTwoName = 'Yellow'
   ];
 
   let winner = 0;
-  let tie;
+  let tie = 0;
 
   const getWinner = () => winner;
   const checkTie = () => tie;
@@ -156,6 +156,7 @@ const gameController = function (playerOneName = 'Red', playerTwoName = 'Yellow'
   const resetGame = () => {
     board.resetBoard();
     winner = 0;
+    tie =0;
     activePlayer = players[0];
   }
 
@@ -257,8 +258,9 @@ const screenController = (function () {
         playerTurnName.textContent = `${activePlayer.name.toUpperCase()}`;
         playerTurnText.textContent = `'s turn!`; 
 
-        if (game.getWinner()) playerTurnText.textContent = ` wins!`;
-        if (game.checkTie()) {
+        if (game.getWinner()) {
+          playerTurnText.textContent = ` wins!`;
+        } else if (game.checkTie()) {
           playerTurnName.textContent = '';
           playerTurnText.textContent = 'It\'s a tie!';
         }
